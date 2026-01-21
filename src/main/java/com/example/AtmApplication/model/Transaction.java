@@ -3,6 +3,8 @@ package com.example.AtmApplication.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -15,6 +17,7 @@ public class Transaction {
 	
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="account_id",nullable=false)
+	  @JsonIgnore  
 	private Account account;
 	
 	@Column(nullable=false)
