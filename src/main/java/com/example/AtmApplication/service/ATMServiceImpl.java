@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.AtmApplication.dto.CreateAccount;
 import com.example.AtmApplication.exception.AccountAlreadyFound;
@@ -27,15 +29,21 @@ public class ATMServiceImpl implements ATMService{
 	@Autowired
 	private TransactionRepository transactionRepository;
 	
-	private Account getAccount(String accountNumber) {
-		return accountRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new 
-				AccountNotFoundException("Account not found: "+accountNumber));
+	public Account getAccount(String accountNumber) {
+	    return accountRepository.findByAccountNumber(accountNumber)
+	        .orElseThrow(() -> new ResponseStatusException(
+	            HttpStatus.NOT_FOUND,
+	            "Account not found"
+	        ));
 	}
 	
-	public void verifyPin(Account account,String pin) {
-		if(!account.getPin().equals(pin)) {
-			throw new AccountNotFoundException("Invalid pin");
-		}
+	public void verifyPin(Account acc, String pin) {
+	    if (!acc.getPin().equals(pin)) {
+	        throw new ResponseStatusException(
+	            HttpStatus.UNAUTHORIZED,
+	            "Invalid PIN"
+	        );
+	    }
 	}
 	
 	public void accountExist(String accountNumber) {
@@ -125,12 +133,18 @@ public class ATMServiceImpl implements ATMService{
 
     }
 
+    
     @Override
     public List<Transaction> getTransactions(String accountNumber, String pin) {
-        Account acc = getAccount(accountNumber);
-        verifyPin(acc, pin);
-        return transactionRepository.findByAccountOrderByTimestampDesc(acc);
+        Account acc = getAccount(accountNumber);   // safe
+        verifyPin(acc, pin);                       // safe
+        return transactionRepository
+               .findByAccountOrderByTimestampDesc(acc);
     }
+
+    
+ 
+
 }
 
 
